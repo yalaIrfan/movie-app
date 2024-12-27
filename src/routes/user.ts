@@ -1,51 +1,82 @@
 import { Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
-// import Session from 'express-session'
 import { User } from '../models/User';
+import { Password } from '../services/password';
 const router = Router();
 
-interface UserAttrs {
+interface UserInterface {
     email: string;
+    role?: string;
     password: string;
+
+    id?: string;
 }
+
+
+
+declare module 'express' {
+    interface Request {
+        currentUser?:  UserInterface;
+    }
+}
+
+
+declare module 'express-session' { 
+    interface Session  {
+        jwt?: string;
+    }
+}
+
 
 router.post('/signup', async (req: Request, res: Response) => {
     console.log('signup !!!!!!!!!!!', req.body);
-    const { email, password } = req.body as UserAttrs;
+    const { email, password, role = 'user' } = req.body as UserInterface;
+    
     // check if user exists
     const user = await User.findOne({ where: { email } });
     if (user) {
-        // throw new Error('Email in use');
+        throw new Error('Email in use');
     }
-    const userModel = User.build({ email, password });
+    const userModel = User.build({ email, password, role });
     // create user
     await userModel.save();
-    const topSecret = process.env.JWT_KEY || 'topsecret';
-    const userToken = jwt.sign({ email, id: userModel.id }, topSecret);
-    // req.session.jwt = userToken;
-    console.log(userToken);
-    res.status(201).send({ email: userModel.email, message: 'User created successfully' });
+
+    res.status(201).send({ email: userModel.email, role, message: 'User created successfully' });
 });
 
 router.post('/signin', async (req: Request, res: Response) => {
-    const { email, password }: UserAttrs = req.body;
-    User.findOne({ where: { email, password } }).then(user => {
-        if (!user) {
-            throw new Error('User not found');
-        }
-        // jwt generate add role details user detail in token
-
-        res.status(200).send(user);
-    })
+    const { email, password , role} = req.body as UserInterface;
+    User.findOne({ email })
+        .then(async (existingUser) => {
+            if (!existingUser) {
+                throw new Error('User not found');
+            }
+            const passwordsMatch = await Password.compare(
+                existingUser.password,
+                password
+            );
+            if (!passwordsMatch) {
+                throw new Error('Invalid Credentials');
+            }
+            const topSecret = process.env.JWT_KEY || 'topsecret';
+            const userToken = jwt.sign({ email: existingUser.email, id: existingUser.id , role: existingUser.role }, topSecret, {
+                expiresIn: '10m'
+            });
+            req.session.jwt =  userToken;
+            console.log('userToken.userToken', userToken);
+            res.status(200).send({ message: 'Signin successfully', userToken, email });
+        })
         .catch(err => {
             console.log(err);
-            throw new Error('Internal server error');
+            throw new Error(err.message);
         });
 });
 
-router.post('/signout', async (req: Request, res: Response) => {
-    // delete req.session;
-    res.send({ message: 'Signout successfully' });
+router.post('/signout', (req: Request, res: Response) => {
+    // console.log('signout !!!!!!!!!!!', req.body);
+    delete req.session.jwt;
+    res.status(200).send({ message: 'Signout successfully' });
+
 });
 
 

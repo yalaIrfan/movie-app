@@ -4,6 +4,7 @@ import { Password } from '../services/password';
 interface UserAttrs {
   email: string;
   password: string;
+  role: string;
 }
 
 interface UserModel extends mongoose.Model<UserDoc> {
@@ -13,17 +14,26 @@ interface UserModel extends mongoose.Model<UserDoc> {
 interface UserDoc extends mongoose.Document {
   email: string;
   password: string;
+  role: string;
+
 }
 
 const userSchema = new mongoose.Schema(
   {
     email: {
       type: String,
-      required: true
+      required: true,
+      unique: true,
+      index: true
     },
     password: {
       type: String,
       required: true
+    },
+    role: {
+      type: String,
+      default: 'user',
+      enum: ['user', 'admin']
     }
   },
   {

@@ -14,7 +14,7 @@ let start = async () => {
 
     // connect db ere..
     try {
-        await mongoose.connect(`mongodb+srv://mohammadirfany93:${process.env.DB_PASSWORD}@movie.lyelo.mongodb.net/?retryWrites=true&w=majority&appName=movie`);
+        await mongoose.connect(`mongodb+srv://mohammadirfany93:${process.env.DB_PASSWORD}@movie.lyelo.mongodb.net/?retryWrites=true&w=majority&appName=movielobby1`);
         console.log('Connected to MongoDb');
         // await sequelizePg.authenticate();
     } catch (err) {
