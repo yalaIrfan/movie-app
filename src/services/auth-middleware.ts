@@ -23,7 +23,6 @@ interface UserInterface {
     id?: string;
 }
 
-
 const VerifyToken = (req: Request, res: Response, next: NextFunction) => {
 
     // const token = req.header('Authorization') as string;

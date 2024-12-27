@@ -1,7 +1,7 @@
-import { Request, Response, Router } from "express";
+import { Request, Response, Router } from 'express';
 import { Movie } from '../models/Movie';
-import { VerifyToken, isAuthorized } from "../services/auth-middleware";
-import { Roles } from "../services/roles";
+import { VerifyToken, isAuthorized } from '../services/auth-middleware';
+import { Roles } from '../services/roles';
 const router = Router();
 
 
