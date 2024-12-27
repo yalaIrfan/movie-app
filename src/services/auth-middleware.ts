@@ -29,8 +29,10 @@ const VerifyToken = (req: Request, res: Response, next: NextFunction) => {
     // const token = req.header('Authorization') as string;
     const token = req.session.jwt as string;
 
-    if (!token || token === undefined)
-        res.status(401).json({ error: 'Access denied' });
+    if (!token || token === undefined) {
+        next(new Error('Access denied'));
+    }
+        // res.status(401).json({ error: 'Access denied' });
     try {
         const decoded = jwt.verify(token, 'topsecret') as User;
         req.currentUser = { email: decoded.email, id: decoded.id, role: decoded.role } as UserInterface;
